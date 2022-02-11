@@ -34,9 +34,13 @@ class LeadModel(db.Model):
 
     @staticmethod
     def verify_keys_and_values(data, keys= keys_valid):
-        list_keys= [key for key in data]
-        values= [value for value in data.values()]
+                
+        invalid_key = [key for key in data if key not in keys]
+        for key in invalid_key:
+            del data[key]
 
+        list_keys= [key for key in data if key in keys] 
+        values= [value for value in data.values()]
         for value in values:
             if not isinstance(value, str):
                 return "string only accepted values"
@@ -44,11 +48,11 @@ class LeadModel(db.Model):
         if (set(list_keys) == set(keys)):
             phone = re.fullmatch(r"\(\d{2}\)\d{5}\-\w{4}",data["phone"])
             if not phone:
-                return "phone this only format (xx)xxxxx-xxxx"
+                return "phone this only format (00)00000-0000"
             return data 
         else:
             return {
                 "waiting" : keys,
-                "received": list_keys
+                "received": list_keys + invalid_key
             }
 
