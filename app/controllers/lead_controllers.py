@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from sqlalchemy import desc
 from sqlalchemy.exc import ProgrammingError, IntegrityError
 from app.models.lead_model import LeadModel
 from app.configs.database import db
@@ -20,9 +21,8 @@ def lead_post():
         return {"error": data},HTTPStatus.BAD_REQUEST
 
 def lead_get():
-    leads_list = (
-        LeadModel.query.all()
-    )
+    leads_list = db.session.query(LeadModel).order_by(desc(LeadModel.visits)).all()
+
     return jsonify(leads_list), HTTPStatus.OK
 
 def lead_update():
