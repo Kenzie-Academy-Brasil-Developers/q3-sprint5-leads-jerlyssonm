@@ -2,10 +2,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime
 from app.configs.database import db
+import re
+
 
 @dataclass
 class LeadModel(db.Model):
-
+    keys_valid=["name", "email", "phone"]
     __tablename__= "leads"
 
     id = Column(Integer, primary_key=True)
@@ -29,3 +31,24 @@ class LeadModel(db.Model):
         lead.last_visit = datetime.now()
         lead.visits = lead.visits + 1
         return lead
+
+    @staticmethod
+    def verify_keys_and_values(data, keys= keys_valid):
+        list_keys= [key for key in data]
+        values= [value for value in data.values()]
+
+        for value in values:
+            if not isinstance(value, str):
+                return "string only accepted values"
+        
+        if (set(list_keys) == set(keys)):
+            phone = re.fullmatch(r"\(\d{2}\)\d{5}\-\w{4}",data["phone"])
+            if not phone:
+                return "phone this only format (xx)xxxxx-xxxx"
+            return data 
+        else:
+            return {
+                "waiting" : keys,
+                "received": list_keys
+            }
+

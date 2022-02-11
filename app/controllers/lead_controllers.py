@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from sqlalchemy.exc import ProgrammingError
+from sqlalchemy.exc import ProgrammingError, IntegrityError
 from app.models.lead_model import LeadModel
 from app.configs.database import db
 from flask import jsonify, request
@@ -7,12 +7,17 @@ from werkzeug.exceptions import NotFound
 
 
 def lead_post():
-    data = request.get_json()
-
-    lead = LeadModel(**data)
-    db.session.add(lead)
-    db.session.commit()
-    return jsonify(lead),HTTPStatus.CREATED
+    try:
+        data = request.get_json()
+        data = LeadModel.verify_keys_and_values(data)
+        lead = LeadModel(**data)
+        db.session.add(lead)
+        db.session.commit()
+        return jsonify(lead),HTTPStatus.CREATED
+    except IntegrityError:
+        return {"error": "email or phone already exists"},HTTPStatus.CONFLICT
+    except TypeError:
+        return {"error": data},HTTPStatus.BAD_REQUEST
 
 def lead_get():
     leads_list = (
@@ -53,6 +58,6 @@ def lead_delete():
 
         return  '',HTTPStatus.NO_CONTENT
     except NotFound:
-        return {"error": f"email {data_email} not found"}
+        return {"error": f"email {data_email} not found"}, HTTPStatus.NOT_FOUND
     except:
-        return {"Alert Error": f"use 'email': 'email@example.com'"}
+        return {"Alert Error": "use 'email': 'email@example.com'"}, HTTPStatus.NOT_ACCEPTABLE
