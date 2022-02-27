@@ -21,7 +21,7 @@ def lead_post():
         return {"error": data},HTTPStatus.BAD_REQUEST
 
 def lead_get():
-    leads_list = db.session.query(LeadModel).order_by(desc(LeadModel.visits)).all()
+    leads_list = LeadModel.query.order_by(desc(LeadModel.visits)).all()
 
     return jsonify(leads_list), HTTPStatus.OK
 
@@ -37,7 +37,7 @@ def lead_update():
         updated = LeadModel.visit(lead_updated)
         db.session.add(updated)
         db.session.commit()
-        return  jsonify(updated), HTTPStatus.NO_CONTENT
+        return '', HTTPStatus.NO_CONTENT
     except NotFound:
         return {"error": f"email {data_email} not found"},HTTPStatus.NOT_FOUND
     except (KeyError,ProgrammingError ):
